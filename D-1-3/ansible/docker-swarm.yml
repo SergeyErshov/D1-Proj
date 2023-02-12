@@ -1,0 +1,52 @@
+- name: init docker swarm manager node
+  hosts: manager
+  vars:
+    - manager_ip: 10.128.0.29
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+
+  tasks:
+
+    - name: create swarm
+      shell:
+        cmd: "docker swarm init --advertise-addr {{ manager_ip }}"
+
+    - name: get manager token
+      shell:
+        cmd: " docker swarm join-token -q worker"
+      register: manager_token
+      tags:
+        - tag1
+
+    - name: exec token
+      debug:
+        msg: "swamp manager token is {{ manager_token }}"
+      tags:
+        - tag1
+
+    - name: add manager_token to memeory
+      add_host:
+        name: "manager_dummy"
+        token: "{{ manager_token }}"
+      tags:
+        - tag1
+
+  
+- name: init docker swarm manager node
+  hosts: worker
+  vars:
+    - manager_ip: 10.128.0.29
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+
+  tasks:
+
+    - name: join workers to swarm
+      shell:
+        cmd: "docker swarm join --token {{ hostvars['manager_dummy']['token'] }} {{ manager_ip }}:2377"
+      tags:
+        - tag1    
