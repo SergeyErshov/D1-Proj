@@ -1,0 +1,13 @@
+- name: init docker swarm manager node
+  hosts: manager
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+
+  tasks:
+
+    - name: copy new docker-compose file to manager node
+      copy:
+        src: "./config/docker-compose.yml"
+        dest: "/usr/distrib/"
