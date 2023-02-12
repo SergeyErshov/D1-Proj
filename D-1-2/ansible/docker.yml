@@ -61,6 +61,23 @@
         path: "/usr/distrib/docker-compose"
         mode: "u+x,g+x,o+x"
 
+    - name: safe docker compose log to file
+      shell: 
+        cmd: 'docker compose logs >> /home/esm/docker-compose.log'
+        chdir: "/usr/distrib"
+      ignore_errors: true
+      tags:
+        - log
+
+    - name: fetch log 
+      fetch:
+        src: "/home/esm/docker-compose.log"
+        dest: "../logs/"
+        flat: true
+      tags:
+        - log
+
+
 
 
 
