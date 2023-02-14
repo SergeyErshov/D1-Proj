@@ -1,5 +1,5 @@
 job "netman" {
-  datacenters = ["dc1"]
+  datacenters = ["dc01"]
   type = "system"
 
   constraint {
@@ -9,7 +9,7 @@ job "netman" {
 
   update {
     stagger = "10s"
-    max_parallel = 1
+    max_parallel = 2
   }
 
   # - Frontend group #
@@ -21,7 +21,7 @@ job "netman" {
       driver = "raw_exec"
 
       config {
-        command = "/usr/bin/netman"
+        command = "/usr/bin/netman.sh"
       }
 
       resources {
