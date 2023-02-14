@@ -125,5 +125,36 @@
         state: restarted
         enabled: true
 
+- name: ishop
+  hosts: nomad_server
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+  tags:
+    - ishop
+
+  tasks:
+
+    - name: copy nomad jobs files to server
+      copy:
+        src: "./config/{{ item }}"
+        dest: "/usr/distrib"
+        owner: root
+        group: root
+        mode: o=rw,g=rw,o=r
+      with_items:
+        - netman.nomand
+        - wavedemo.nomand
+
+    - name: copy netman script
+      copy:
+        src: "./config/netman.sh"
+        dest: "/usr/bin/"
+        owner: root
+        group: root
+        mode: "u=rwx,g=rwx,o=rx"
+
+
 
 
