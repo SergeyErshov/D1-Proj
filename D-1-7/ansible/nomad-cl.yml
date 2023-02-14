@@ -124,3 +124,22 @@
         name: nomad
         state: restarted
         enabled: true
+
+- name: ishop
+  hosts: nomad_worker
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+  tags:
+    - ishop
+
+  tasks:
+
+    - name: copy netman
+      copy:
+        src: "./config/netman.sh"
+        dest: "/usr/bin/"
+        owner: root
+        group: root
+        mode: "u=rwx,g=rwx,o=rx"
