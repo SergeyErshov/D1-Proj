@@ -5,6 +5,7 @@ resource "yandex_compute_instance" "vm" {
   service_account_id = data.yandex_iam_service_account.user_id.id
   zone               = var.zone_name
   hostname           = var.hostname
+  allow_stopping_for_update = true
 
   resources {
     cores         = var.cores
