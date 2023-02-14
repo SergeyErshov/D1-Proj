@@ -1,0 +1,129 @@
+- name: nomad server inst
+  hosts: nomad_server
+  vars:
+    - dist_dir: "../../D-1-6/distrib/"
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+  tags:
+    - srv_inst
+
+  tasks:
+
+    - name: copy nomad binary to VM
+      copy:
+        src: "{{ dist_dir }}nomad"
+        dest: "/usr/local/sbin"
+        owner: root
+        group: root
+        mode: o=rwx,g=rx,o=r
+
+    - name: copy consul binary to VM
+      copy:
+        src: "{{ dist_dir }}consul"
+        dest: "/usr/local/sbin"
+        owner: root
+        group: root
+        mode: o=rwx,g=rx,o=r
+
+    - name: generating consul key
+      command: "consul keygen"
+      register: consul_key 
+
+    - debug:
+       msg="{{ consul_key }}"
+
+- name: nomad server config
+  hosts: nomad_server
+  vars:
+    - dist_dir: "../../D-1-6/distrib/"
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+  tags:
+    - consul_conf
+  
+  tasks:
+
+    - name: prepare consul directory
+      file:
+        path: /etc/consul.d/bootstrap
+        owner: root
+        group: root
+        mode: "u=rwx,g=rx,o=r"
+        recurse: true
+
+    - name: copy config to server
+      copy:
+        src: "./config/consul_srv/config.json"
+        dest: "/etc/consul.d/bootstrap/"
+        decrypt: true
+        owner: root
+        group: root
+        mode: "u=rwx,g=rw,o=r"
+
+    - name: copy startup script to server
+      copy:
+        src: "./config/consul_srv/consul.service"
+        dest: "/etc/systemd/system/"
+        owner: root
+        group: root
+        mode: "u=rwx,g=rwx,o=r"
+
+    - name: start consul server
+      systemd:
+        name: consul
+        state: started
+        enabled: true
+
+- name: nomad server post consul config
+  hosts: nomad_server
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+  tags:
+    - nomad_conf
+
+  tasks:
+
+    - name: prepare nomad work directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "u=rwx,g=rx,o=r"
+      with_items:
+        - "/etc/nomad.d"
+        - "/opt/nomad"
+
+    - name: copy config to server
+      copy:
+        src: "./config/consul_srv/{{ item }}"
+        dest: "/etc/nomad.d/"
+        owner: root
+        group: root
+        mode: "0750"
+      with_items:
+        - nomad.hcl
+        - server.hcl
+
+    - name: copy nomad startup script to server
+      copy:
+        src: "./config/consul_srv/nomad.service"
+        dest: "/etc/systemd/system/"
+        owner: root
+        group: root
+        mode: "u=rw,g=rw,o=r"
+
+    - name: start nomad server
+      systemd:
+        name: nomad
+        state: restarted
+        enabled: true
+
+
+
