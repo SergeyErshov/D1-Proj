@@ -1,0 +1,43 @@
+- name: install docker
+  hosts: nomad_server
+  gather_facts: false
+  become: true
+  become_user: "root"
+  become_method: "sudo"
+
+  tasks:
+
+    - name: install nedeed pachage
+      package:
+        name:
+          - ca-certificates
+          - curl
+          - wget
+          - apt-transport-https
+          - software-properties-common
+        state: present
+        update_cache: true
+
+    - name: add docker repo
+      shell:
+        cmd: 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null'
+
+    - name: update cache && install docker
+      package:
+        name: docker-ce
+        state: present
+        update_cache: true
+
+    - name: run docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+
+
+
+
+
+
+    
